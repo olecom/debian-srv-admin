@@ -1,0 +1,67 @@
+#!/bin/sh
+
+set -e
+
+[ "$*" ] || exec echo "
+Usage: $0 [&|] {set}
+"
+trap "echo '
+Unexpected Script Error! Use \`/bin/sh -x $0\` to trace it.
+'" 0
+
+iptables -P INPUT ACCEPT
+iptables -P OUTPUT ACCEPT
+iptables -F INPUT
+iptables -F OUTPUT
+
+#iptables -A INPUT -p tcp -s 1.0.0.0/8        --dport 1980 -j ACCEPT
+# MTS
+iptables -I INPUT -p tcp -s 178.168.0.0/16   --dport 1980 -j ACCEPT
+iptables -I INPUT -p tcp -s 46.216.0.0/16    --dport 1980 -j ACCEPT
+iptables -I INPUT -p tcp -s 46.56.0.0/16     --dport 1980 -j ACCEPT
+iptables -I INPUT -p tcp -s 134.17.16.0/20   --dport 1980 -j ACCEPT
+#route:           134.17.192.0/19 descr:           Mobile TeleSystems JLLC
+iptables -I INPUT -p tcp -s 134.17.192.0/19   --dport 1980 -j ACCEPT
+iptables -I INPUT -p tcp -s 134.17.224.0/19   --dport 1980 -j ACCEPT
+iptables -I INPUT -p tcp -s 176.60.0.0/16     --dport 1980 -j ACCEPT
+iptables -I INPUT -p tcp -s 134.17.96.0/19    --dport 1980 -j ACCEPT
+# Beltelecom 178.120.0.0/13
+iptables -I INPUT -p tcp -s 178.120.0.0/13    --dport 1980 -j ACCEPT
+iptables -I INPUT -p tcp -s  37.212.0.0/14    --dport 1980 -j ACCEPT
+iptables -I INPUT -p tcp -s   93.84.0.0/15    --dport 1980 -j ACCEPT
+# Business Network JV
+iptables -I INPUT -p tcp -s 46.28.101.0/24    --dport 1980 -j ACCEPT
+# Business network jv Minsk-DialUp-04, Broadband
+iptables -I INPUT -p tcp -s 212.98.160.0/19   --dport 1980 -j ACCEPT
+iptables -I INPUT -p tcp -s 80.249.80.0/20    --dport 1980 -j ACCEPT
+# Velcom
+iptables -I INPUT -p tcp -s 37.17.0.0/17      --dport 1980 -j ACCEPT
+# azemel.be
+iptables -I INPUT -p tcp -s 94.23.236.10      --dport 1980 -j ACCEPT
+
+#life azemel
+iptables -I INPUT -p tcp -s 5.100.192.0/19    --dport 1980 -j ACCEPT
+iptables -I INPUT -p tcp -s 77.67.192.0/18    --dport 1980 -j ACCEPT
+#178.154.0.0/17
+
+# pulsar's serv
+iptables -I INPUT -p tcp -s 174.142.248.143   --dport 1980 -j ACCEPT
+# tuvia
+#iptables -I INPUT -p tcp -s 213.184.224.147 --dport 1980 -j ACCEPT
+# tuvia + baklan telecom.by (damavik)
+iptables -I INPUT -p tcp -s 213.184.224.0/24 --dport 1980 -j ACCEPT
+
+iptables -A INPUT -p tcp                     --dport 1980 -j DROP
+iptables -A INPUT -p tcp                     --dport 22 -j DROP
+iptables -A INPUT -p tcp --source-port 1980 -j ACCEPT
+#iptables -A INPUT -p tcp --source-port 8888 -j ACCEPT
+# protect tinyproxy from external traffic
+iptables -A INPUT -p tcp -d 86.57.246.51 --dport 8888 -j DROP
+
+iptables -A INPUT -p tcp --source-port 9494:65535 -j ACCEPT
+iptables -A INPUT -p tcp --source-port 80 -j ACCEPT
+
+iptables -A OUTPUT -p tcp --source-port 9494:65535 -j ACCEPT
+iptables -A OUTPUT -p tcp --source-port 80 -j ACCEPT
+iptables -A OUTPUT -p tcp --source-port 1980 -j ACCEPT
+iptables -A OUTPUT -p tcp --source-port 8888 -j ACCEPT

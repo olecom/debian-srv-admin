@@ -1,0 +1,19 @@
+;
+; BIND data file for 'like.by' interface '86.57.246.51'
+;
+$TTL	604800
+@	IN	SOA	like.by. olecom.gmail.com. (
+			20090807	; Serial
+			 604800		; Refresh
+			  86400		; Retry
+			2419200		; Expire
+			 604800 )	; Negative Cache TTL
+;
+	HINFO   "i386-server-linux-glibc-debian" "config by olecom"
+	TXT     "The Ant. Ants can lift over 50 times their own weight."
+	IN	NS	like.by.
+	IN	MX 7	mail.like.by.
+		IN	A	86.57.246.51
+	IN	AAAA	::1
+
+*	IN	A 86.57.246.51

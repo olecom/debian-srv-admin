@@ -1,0 +1,80 @@
+#!/bin/sh
+
+# config directory: '/etc/bind/'
+#                   every directory here is a config setup for every
+#                   network interface (or IP address) on a server
+# chroot directory: '/var/cache/bind-chroot/'
+#                   this script will copy all config directories for all
+#                   network interfaces here, and will run named daemon
+#                   chroot()ed here in a config directory
+##
+## send comments to <olecom@gmail.com> ##
+
+set -e
+
+[ "$*" ] || exec echo "Usage: $0 [&|] {start, stop, reload, who}"
+trap "echo '
+Unexpected Script Error!. Use \`/bin/sh -x $0\` to trace it.
+'" 0
+
+for p in "$@"
+do case "$p" in
+start)
+
+# set up file creation mask for 'bind:root' as '|r--|rw-|---|'
+# we are root, and we will create config files there, so we
+# must have write access (for while)
+
+umask 0217
+# create working directory, where `bind` will chroot() to
+[ -d '/var/cache/bind-chroot' ] || mkdir -m 770 -p '/var/cache/bind-chroot'
+
+# going into config directory
+cd /etc/bind
+# for every directory (with per network interface config)
+# copy config files into chroot, exec a daemon
+for d in *
+do [ -d "$d" ] && (
+    # go into a config
+    cd "$d"
+    # create chroot for it
+    d="/var/cache/bind-chroot/$d"
+    mkdir -m 770 -p "$d"
+    chown bind:root "$d"
+    # copy config files there
+    for f in *
+    do  dd <"$f">"$d/$f"
+    done
+    # go there
+    cd "$d"
+    # secure files
+    chown bind:root *
+    # drop write permission for root group for newly created files
+    umask 0117
+    # run `named` here as user 'bind'; it will chroot() here (in "$d").
+    exec env -i /usr/sbin/named -4 -c named.conf -d0 -t"$d" -ubind
+)
+done >/dev/null 2>&1
+# show daemons
+ps -C named -ouid,pid,cmd
+;;
+stop)
+# stop all named daemons, ignoring errors
+while ps h -C named -opid
+do kill -TERM `ps h -C named -opid`
+   sleep 1
+done >/dev/null 2>&1 || :
+;;
+reload)
+# NOTE: config files are being re-read from the chroot directory
+#       in the cache /var/cache/bind-chroot/$config
+kill -HUP `ps h -C named -opid`
+;;
+who)
+# show who's running
+ps -C named -f || :
+;;
+esac
+echo "$p"
+done
+trap "" 0

@@ -1,0 +1,88 @@
+#!/bin/sh
+
+set -e
+daemons='apache2 pure-ftpd+ mysql ssh+ bind9+'
+
+[ "$*" ] || exec echo "
+Usage: $0 [&|] {
+* start,
+* stop,
+* restart (with $daemons),
+* [w]hat, (show state)
+* [rr], remote-restart uses at(1)
+}
+"
+trap "echo '
+Unexpected Script Error! Use \`/bin/sh -x $0\` to trace it.
+'" 0
+
+result() {
+ip route
+ip addr show dev eth0
+ip -s l show dev eth0
+}
+
+for p in "$@"
+do case "$p" in
+start)
+## NET ##
+# testing net
+ip a a 192.168.1.7/24 dev eth0
+# Internet (?mtu)
+ip a a 86.57.246.51/28 dev eth0
+# getting up interfaces
+ip l s up dev lo
+ip l s up dev eth0
+# routing
+ip ro add via 86.57.246.49
+
+: alternative configuration using WiFi '
+iwconfig wlan0 txpower 27
+iwconfig wlan0 channel 7
+iwconfig wlan0 rate auto
+iwconfig wlan0 mode Ad-Hoc
+iwconfig wlan0 essid WiFi_TECT
+ip a a 10.0.0.10/8 dev wlan0
+'
+## FIREWALL ## make some drop around login sshd (say 1881-2009)
+#iptables -A INPUT -p tcp --destination-port 1980 -j ACCEPT
+#iptables -A INPUT -p tcp --destination-port 1881:2009 -j DROP
+#    iptables -A FORWARD -s 192.168.7.12 -j ACCEPT
+#    iptables -A FORWARD -d 192.168.7.12 -j ACCEPT
+#    iptables -A FORWARD -s 0/0 -p tcp --source-port 6667 -j ACCEPT
+#    iptables -A FORWARD -d 0/0 -p tcp --destination-port 6667 -j ACCEPT
+result
+;;
+restart)
+cd /etc/init.d
+for d in $daemons
+do "./$d" stop
+done
+"$0" stop start
+for d in bind9+ ssh+ mysql pure-ftpd+ apache2
+do "./$d" start
+done
+;;
+stop)
+
+{
+ip l s down eth0
+ip l s down lo
+ip a flush dev eth0
+} || :
+;;
+w)
+result
+;;
+rr)
+hash at && {
+p='remote-restart within one minute'
+at now + 1 minute <<_
+"$0" stop start
+_
+} || p="remote-restart doesn't work"
+;;
+esac
+echo "$p"
+done
+trap "" 0
