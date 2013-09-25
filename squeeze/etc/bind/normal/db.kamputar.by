@@ -1,0 +1,18 @@
+;
+; BIND data file for 'kamputar.by'
+;
+$TTL	604800
+@	IN	SOA	kamputar.by. olecom.gmail.com. (
+			      2		; Serial
+			 604800		; Refresh
+			  86400		; Retry
+			2419200		; Expire
+			 604800 )	; Negative Cache TTL
+;
+	HINFO   "i386-server-linux-glibc-debian" "config by olecom"
+	TXT     "v=spf1 a mx -all The Ant. Ants can lift over 50 times their own weight."
+ 	IN	NS	dela.by.
+	IN	A	86.57.246.51
+	IN	AAAA	::1
+
+*	IN	A 86.57.246.51
