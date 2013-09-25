@@ -18,11 +18,25 @@
 
 set +i -e
 sleep 02
-umask 027
+umask 777
 cd /
 
-[ "$LC_INTERACT" ] || exec /usr/lib/openssh/sftp-server
+B="["`LANG=C date`"] In door
+$SSH_CONNECTION
+"
 
+[ "$LC_INTERACT" ] || {
+B=$B"["`LANG=C date`"] Useing SFTP.
+"
+# group may get public content
+umask 007
+mail -s "Puff in the Hole" "root" <<!E
+$B
+tty: $SSH_TTY
+!E
+exec /usr/lib/openssh/sftp-server
+}
+umask 027
 U=`
 T=50
 P="Enter user name, please ("
@@ -47,12 +61,18 @@ do
      fi
 done`
 echo "Wait, please..."
-B="["`LANG=C date`"] In door
-"
 sleep 2
 mail -s "Puff in the Hole via [$U]" root <<!E
 $B
 !E
+
+# [orig cmd] is available in the SSH_ORIGINAL_COMMAND environment variable.
+# Specifying a command of “internal-sftp” will force the use of an in-process [ftp]
+
+# Note: client may not want to execeute _any_ command at all,
+#       thus 'ForceCommand' is skiped, which is unexpected "forced" action.
+#       e.g. `plink.exe -N` will skip whis whole script...
+
 [ "$SSH_ORIGINAL_COMMAND" ] || case "${U:=}" in
     root|'')
 	exec sleep $((1<<30));;

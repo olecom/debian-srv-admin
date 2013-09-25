@@ -78,7 +78,7 @@ rr)
 hash at && {
 p='remote-restart within one minute'
 at now + 1 minute <<_
-"$0" stop start
+"$0" restart
 _
 } || p="remote-restart doesn't work"
 ;;
