@@ -1,0 +1,62 @@
+#!/bin/sh
+# ssh for hosting users allowed to connect to a special port
+set -e
+
+[ "$*" ] || exec echo "
+Usage: $0 [&|] {start, stop, reload, who(w)}"
+trap "echo '
+Unexpected Script Error! Use \`/bin/sh -x $0\` to trace it.
+'" 0
+
+hosting_pids() {
+ps h -C sshd -f | sed '/hosting/s/^[^[:blank:]]\{1,\}[[:blank:]]\{1,\}\([^[:blank:]]\{1,\}\).*/\1/p;d'
+}
+
+for p in "$@"
+do case "$p" in
+start)
+# Create the PrivSep empty dir if necessary
+[ -d /var/run/sshd ] || {
+	mkdir /var/run/sshd
+	chmod 0750 /var/run/sshd
+}
+# dummy
+SSHD_OOM_ADJUST=0 /usr/sbin/sshd
+# special
+cd /etc/ssh/hosting
+for c in *
+do SSHD_OOM_ADJUST=-17 /usr/sbin/sshd -f "/etc/ssh/hosting/$c"
+done
+# show daemons
+ps -C sshd -ouid,pid,cmd | grep 'hosting'
+;;
+reload)
+kill -HUP `hosting_pids`
+;;
+reload_main | rm*)
+#kill -HUP `ps h -C sshd | sed '/+login/s_^\([[:blank:][:digit:]]*\).*_\1_p;d'`
+echo 'NO reload_main for hosting'
+;;
+stop)
+# kill daemons, ignoring errors
+pids=''
+while pids=`hosting_pids` && [ -n "$pids" ]
+do kill -TERM $pids
+   sleep 1
+done >/dev/null 2>&1 || :
+;;
+who | w*)
+# show who's running
+ps -C sshd -f | grep 'hosting' || :
+echo 'who'
+;;
+rr)
+#p='remote restart 4 seconds later'
+#/bin/sh -c 'sleep 4 && /etc/init.d/ssh+ stop start&' >/dev/kmsg 2>&1 <&-
+;;
+esac
+echo "
+Results of hosting ssh cmd: '$p'
+"
+done
+trap "" 0

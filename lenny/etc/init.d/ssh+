@@ -3,10 +3,11 @@
 set -e
 
 [ "$*" ] || exec echo "
-Usage: $0 [&|] {start, stop, reload, who, rr (remote-restart; uses at(1))}"
+Usage: $0 [&|] {start, stop, reload, reload_main (rm), who(w), rr (safe remote restart)}"
 trap "echo '
 Unexpected Script Error! Use \`/bin/sh -x $0\` to trace it.
 '" 0
+
 for p in "$@"
 do case "$p" in
 start)
@@ -16,18 +17,21 @@ start)
 	chmod 0750 /var/run/sshd
 }
 # dummy
-env -i "LANG=$LANG" SSHD_OOM_ADJUST=0 /usr/sbin/sshd
+SSHD_OOM_ADJUST=0 /usr/sbin/sshd
 # special
 cd /etc/ssh
 for c in sshd_config+*
-do env -i "LANG=$LANG" SSHD_OOM_ADJUST=-17 /usr/sbin/sshd -f "/etc/ssh/$c"
+do SSHD_OOM_ADJUST=-17 /usr/sbin/sshd -f "/etc/ssh/$c"
 done
-
 # show daemons
 ps -C sshd -ouid,pid,cmd
 ;;
 reload)
 kill -HUP `ps h -C sshd -opid`
+;;
+reload_main | rm*)
+kill -HUP `ps h -C sshd | sed '/+login/s_^\([[:blank:][:digit:]]*\).*_\1_p;d'`
+echo 'reload_main'
 ;;
 stop)
 # kill daemons, ignoring errors
@@ -36,19 +40,18 @@ do kill -TERM `ps h -C sshd -opid`
    sleep 1
 done >/dev/null 2>&1 || :
 ;;
-who)
+who | w*)
 # show who's running
 ps -C sshd -f || :
+echo 'who'
 ;;
 rr)
-hash at && {
-p='remote-restart within one minute'
-at now + 1 minute <<'_'
-/etc/init.d/ssh+ stop start
-_
-} || p="remote-restart doesn't work"
+p='remote restart 4 seconds later'
+/bin/sh -c 'sleep 4 && /etc/init.d/ssh+ stop start&' >/dev/kmsg 2>&1 <&-
 ;;
 esac
-echo "$p"
+echo "
+Results of cmd: '$p'
+"
 done
 trap "" 0
