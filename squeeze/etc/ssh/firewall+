@@ -16,15 +16,17 @@ iptables -F OUTPUT
 
 #iptables -A INPUT -p tcp -s 1.0.0.0/8        --dport 1980 -j ACCEPT
 # MTS
+#route:           134.17.192.0/19 descr:           Mobile TeleSystems JLLC
+##iptables -I INPUT -p tcp -s 134.17.192.0/19   --dport 1980 -j ACCEPT
+##iptables -I INPUT -p tcp -s 134.17.224.0/19   --dport 1980 -j ACCEPT
+##iptables -I INPUT -p tcp -s 134.17.96.0/19    --dport 1980 -j ACCEPT
+##iptables -I INPUT -p tcp -s 134.17.16.0/20   --dport 1980 -j ACCEPT
 iptables -I INPUT -p tcp -s 178.168.0.0/16   --dport 1980 -j ACCEPT
 iptables -I INPUT -p tcp -s 46.216.0.0/16    --dport 1980 -j ACCEPT
 iptables -I INPUT -p tcp -s 46.56.0.0/16     --dport 1980 -j ACCEPT
-iptables -I INPUT -p tcp -s 134.17.16.0/20   --dport 1980 -j ACCEPT
-#route:           134.17.192.0/19 descr:           Mobile TeleSystems JLLC
-iptables -I INPUT -p tcp -s 134.17.192.0/19   --dport 1980 -j ACCEPT
-iptables -I INPUT -p tcp -s 134.17.224.0/19   --dport 1980 -j ACCEPT
 iptables -I INPUT -p tcp -s 176.60.0.0/16     --dport 1980 -j ACCEPT
-iptables -I INPUT -p tcp -s 134.17.96.0/19    --dport 1980 -j ACCEPT
+iptables -I INPUT -p tcp -s 134.17.0.0/16   --dport 1980 -j ACCEPT
+
 # Beltelecom 178.120.0.0/13
 iptables -I INPUT -p tcp -s 178.120.0.0/13    --dport 1980 -j ACCEPT
 iptables -I INPUT -p tcp -s  37.212.0.0/14    --dport 1980 -j ACCEPT
