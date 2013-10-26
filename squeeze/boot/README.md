@@ -7,4 +7,4 @@ Server is going down:
 Going up:
 ![server up](http://dela.by/ftp/bubucik-up.png)
 Successful login:
-![server up+login](http://dela.by/ftp/bubucik-up+login.png)
+![server up+login](http://dela.by/ftp/bubucik-up-login.png)
