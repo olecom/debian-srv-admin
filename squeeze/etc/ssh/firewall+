@@ -52,7 +52,10 @@ iptables -I INPUT -p tcp -s 174.142.248.143   --dport 1980 -j ACCEPT
 #iptables -I INPUT -p tcp -s 213.184.224.147 --dport 1980 -j ACCEPT
 # tuvia + baklan telecom.by (damavik)
 iptables -I INPUT -p tcp -s 213.184.224.0/24 --dport 1980 -j ACCEPT
+# Atlant Telecom ISP
+iptables -I INPUT -p tcp -s 93.125.68.0/24   --dport 1980 -j ACCEPT
 
+# general setup:
 iptables -A INPUT -p tcp                     --dport 1980 -j DROP
 iptables -A INPUT -p tcp                     --dport 22 -j DROP
 iptables -A INPUT -p tcp --source-port 1980 -j ACCEPT
