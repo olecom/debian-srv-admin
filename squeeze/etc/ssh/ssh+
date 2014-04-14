@@ -47,7 +47,7 @@ echo 'who'
 ;;
 rr)
 p='remote restart 4 seconds later'
-/bin/sh -c 'sleep 4 && /etc/init.d/ssh+ stop start&' >/dev/kmsg 2>&1 <&-
+/bin/sh -c 'sleep 4 && '"$0"' stop start&' >/dev/kmsg 2>&1 <&-
 ;;
 esac
 echo "
